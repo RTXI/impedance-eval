@@ -26,6 +26,7 @@ static DefaultGUIModel::variable_t vars[] = {
 	{ "Source Signal", "Signal delivered to the electrode in volts", DefaultGUIModel::INPUT, },
 	{ "Measured Signal", "Signal measured after the electrode in volts", DefaultGUIModel::INPUT, },
 	{ "Duration", "Duration for measurement in seconds", DefaultGUIModel::PARAMETER, }, 
+	{ "R Sense", "Sense Resistor in Ohms", DefaultGUIModel::PARAMETER, }, 
 	{ "Impedance", "Computed impedance in ohms", DefaultGUIModel::STATE, }, 
 };
 
@@ -54,9 +55,11 @@ void ImpedanceEval::update(DefaultGUIModel::update_flags_t flag) {
 			period = RT::System::getInstance()->getPeriod() * 1e-9; // ns
 			duration = 5; // s
 			n = duration / period;
+			r_sense = 1000.0; // ohms
 			impedance = 0.0;
 			setState("Impedance", impedance);
 			setParameter("Duration", duration);
+			setParameter("R Sense", r_sense);
 			source.resize(n);
 			measured.resize(n);
 			reset();
@@ -64,6 +67,7 @@ void ImpedanceEval::update(DefaultGUIModel::update_flags_t flag) {
 
 		case MODIFY:
 			duration = getParameter("Duration").toDouble();
+			r_sense = getParameter("R Sense").toDouble();
 			break;
 
 		case UNPAUSE:
@@ -105,7 +109,7 @@ void ImpedanceEval::compute()
 {
 	double source_rms = computeMag(source);
 	double measured_rms = computeMag(measured);
-	impedance = source_rms / measured_rms;
+	impedance = ((source_rms / measured_rms) * 1000.0) - r_sense;
 }
 
 double ImpedanceEval::computeMag(std::vector<double>& v)

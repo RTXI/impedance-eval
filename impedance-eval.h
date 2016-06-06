@@ -39,6 +39,7 @@ class ImpedanceEval : public DefaultGUIModel {
 	private:
 		int n;
 		double impedance;
+		double r_sense;
 		double period;
 		double duration;
 		std::vector<double> source; // buffer for data before event
